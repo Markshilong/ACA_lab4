@@ -1,0 +1,44 @@
+#include "cache.h"
+#include "ghb.h"
+
+GHB *ghb;
+
+void CACHE::l2c_prefetcher_initialize()
+{
+    cout << "CPU " << cpu << " L2C GHB prefetcher" << endl;
+    ghb = new GHB();
+}
+
+uint32_t CACHE::l2c_prefetcher_operate(uint64_t addr, uint64_t ip, uint8_t cache_hit, uint8_t type, uint32_t metadata_in)
+{
+    // process only cache loads
+    if (type != LOAD) {
+        return metadata_in;
+    }
+
+    // prefetch logic is implemented in the GHB.
+    //
+    // for Task 1 the prefetch degree and distance is set to 4
+    std::vector<uint64_t> pf_addr_list;
+    ghb->operate(addr, ip, &pf_addr_list);
+
+    //cout << addr << ": ";
+    for (uint64_t pf_addr : pf_addr_list) {
+        //cout << hex << pf_addr << " ";
+        prefetch_line(ip, addr, pf_addr, FILL_L2, 0);
+    }
+    //cout << endl;
+
+    return metadata_in;
+}
+
+uint32_t CACHE::l2c_prefetcher_cache_fill(uint64_t addr, uint32_t set, uint32_t way, uint8_t prefetch, uint64_t evicted_addr, uint32_t metadata_in)
+{
+    return metadata_in;
+}
+
+void CACHE::l2c_prefetcher_final_stats()
+{
+    cout << "CPU " << cpu << " L2C GHB prefetcher final stats" << endl;
+}
+
